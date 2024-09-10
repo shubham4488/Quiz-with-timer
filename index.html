@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Application</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    #quizContainer {
+      margin: 20px;
+    }
+    .question-block {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .question {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #343a40;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    input[type="radio"] {
+      margin-right: 10px;
+    }
+    #time {
+      font-weight: bold;
+      font-size: 20px;
+      color: #dc3545;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .btn-next {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="time">Time left: 10</div> 
+    <div id="quizContainer"></div> 
+  </div>
+
+  <script>
+    let questions = [
+  {
+    question: "Which of the following is correct about features of JavaScript?",
+    options: [
+      "JavaScript is a lightweight, interpreted programming language.",
+      "JavaScript is designed for creating network-centric applications.",
+      "JavaScript is complementary to and integrated with Java.",
+      "All of the above."
+    ],
+    correctAnswer: 3
+  },
+  {
+    question: "Which HTML tag is used to define an internal style sheet?",
+    options: ["style", "script", "link", "head"],
+    correctAnswer: 0
+  },
+  {
+    question: "Which CSS property controls the text size?",
+    options: ["font-style", "text-size", "font-size", "text-style"],
+    correctAnswer: 2
+  },
+  {
+    question: "What does HTML stand for?",
+    options: [
+      "HyperText Markup Language",
+      "HomeTool Markup Language",
+      "Hyperlinks and Text Markup Language",
+      "Hyper Transfer Markup Language"
+    ],
+    correctAnswer: 0
+  },
+  {
+    question: "Which HTML element is used to specify a footer for a document?",
+    options: ["footer", "bottom", "section", "end"],
+    correctAnswer: 0
+  },
+  {
+    question: "How can you make a list that lists the items with numbers?",
+    options: ["dl", "ul", "ol", "list"],
+    correctAnswer: 2
+  },
+  {
+    question: "Which CSS property is used to change the text color of an element?",
+    options: ["background-color", "color", "text-color", "font-color"],
+    correctAnswer: 1
+  },
+  {
+    question: "Which attribute is used in HTML to define inline styles?",
+    options: ["style", "class", "font", "styles"],
+    correctAnswer: 0
+  },
+  {
+    question: "Which HTML element is used to specify a navigation bar?",
+    options: ["nav", "header", "section", "footer"],
+    correctAnswer: 0
+  },
+  {
+    question: "Which property is used to change the background color in CSS?",
+    options: ["color", "background-color", "bgcolor", "background"],
+    correctAnswer: 1
+  }
+];
+
+
+    let correctAnswersCount = 0;
+    let incorrectAnswersCount = 0;
+
+    
+    let timeRemaining = 10;
+    let timerInterval;
+    let currentQuestionIndex = 0;
+    let selectedQuestions = getRandomQuestions(questions, 7);
+    let userAnswers = [];
+    let totalMarks = selectedQuestions.length;
+
+    
+    displayQuestion(selectedQuestions[currentQuestionIndex]);
+
+    
+    function updateTimer() {
+      let seconds = timeRemaining;
+      seconds = seconds < 10 ? '0' + seconds : seconds;
+      document.getElementById('time').textContent = `Time left: ${seconds}`;
+
+      if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        nextQuestion(); 
+      }
+
+      timeRemaining--;
+    }
+
+    
+    function displayQuestion(question) {
+      const quizContainer = document.getElementById('quizContainer');
+      quizContainer.innerHTML = ''; 
+
+      let questionBlock = document.createElement('div');
+      questionBlock.classList.add('question-block');
+
+      let questionText = document.createElement('p');
+      questionText.classList.add('question');
+      questionText.textContent = `${currentQuestionIndex + 1}. ${question.question}`;
+
+      questionBlock.appendChild(questionText);
+
+      question.options.forEach((option, optionIndex) => {
+        let optionLabel = document.createElement('label');
+        let optionInput = document.createElement('input');
+        optionInput.type = 'radio';
+        optionInput.name = `q${currentQuestionIndex}`;
+        optionInput.value = optionIndex;
+
+        optionInput.addEventListener('change', () => handleRadioChange());
+
+        optionLabel.appendChild(optionInput);
+        let optionText = document.createTextNode(option);
+        optionLabel.appendChild(optionText);
+
+        questionBlock.appendChild(optionLabel);
+      });
+
+      quizContainer.appendChild(questionBlock);
+
+      
+      timeRemaining = 10;
+      clearInterval(timerInterval); 
+      timerInterval = setInterval(updateTimer, 1000);
+
+      
+      let nextButton = document.createElement('button');
+      nextButton.textContent = 'Next';
+      nextButton.id = 'nextButton';
+      nextButton.classList.add('btn', 'btn-next', 'mt-3');
+      nextButton.disabled = true;
+      nextButton.addEventListener('click', nextQuestion);
+      quizContainer.appendChild(nextButton);
+    }
+
+    function handleRadioChange() {
+      document.getElementById('nextButton').disabled = false;
+    }
+
+    function nextQuestion() {
+      clearInterval(timerInterval); 
+
+      let selectedOption = document.querySelector(`input[name="q${currentQuestionIndex}"]:checked`);
+      let userAnswerIndex = selectedOption ? parseInt(selectedOption.value) : null;
+      let userAnswerText = userAnswerIndex !== null ? selectedQuestions[currentQuestionIndex].options[userAnswerIndex] : "No answer";
+
+      userAnswers.push({
+        question: selectedQuestions[currentQuestionIndex].question,
+        correctAnswer: selectedQuestions[currentQuestionIndex].options[selectedQuestions[currentQuestionIndex].correctAnswer],
+        userAnswer: userAnswerText
+      });
+
+      if (userAnswerText === selectedQuestions[currentQuestionIndex].options[selectedQuestions[currentQuestionIndex].correctAnswer]) {
+        correctAnswersCount++;
+      } else {
+        incorrectAnswersCount++;
+      }
+
+      currentQuestionIndex++;
+
+      if (currentQuestionIndex < selectedQuestions.length) {
+        displayQuestion(selectedQuestions[currentQuestionIndex]);
+      } else {
+        displayResults();
+      }
+    }
+
+    function displayResults() {
+      const quizContainer = document.getElementById('quizContainer');
+      quizContainer.innerHTML = '';
+
+      userAnswers.forEach((ans) => {
+        let answerBlock = document.createElement('p');
+        answerBlock.innerHTML = `<b>Question:</b> ${ans.question} <br><b>Your Answer:</b> ${ans.userAnswer} <br><b>Correct Answer:</b> ${ans.correctAnswer}`;
+        quizContainer.appendChild(answerBlock);
+      });
+
+      let resultText = document.createElement('p');
+      resultText.innerHTML = `
+        <b>You scored:</b> ${correctAnswersCount} correct answers out of ${selectedQuestions.length}.<br>
+        <b>Total Marks:</b> ${correctAnswersCount - (incorrectAnswersCount * 0.5)} marks<br>
+        <b>Incorrect Answers:</b> ${incorrectAnswersCount} incorrect answers.
+      `;
+      quizContainer.appendChild(resultText);
+    }
+
+    function getRandomQuestions(arr, num) {
+      let shuffled = arr.sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, num);
+    }
+  </script>
+</body>
+</html>
